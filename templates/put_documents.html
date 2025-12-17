@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Положить документы в ячейку</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/put-documents.css') }}">
+</head>
+<body>
+    <header>
+        <span class="menu-icon" id="menuToggle">≡</span>
+        <div class="title">Положить документы в ячейку</div>
+        <a href="{{ url_for('index') }}" class="back-btn">← Назад</a>
+    </header>
+    <div class="overlay" id="overlay"></div>
+    <div class="container">
+        <nav id="sidebar">
+            <ul>
+                <li><a href="{{ url_for('scan_documents') }}" class="{{ 'active' if current_page == 'scan-documents' else '' }}">Отсканировать документы</a></li>
+                <li><a href="{{ url_for('put_documents') }}" class="{{ 'active' if current_page == 'put-documents' else '' }}">Положить документы в ячейку</a></li>
+                <li><a href="#" class="{{ 'active' if current_page == 'edit-documents' else '' }}">Редактировать список регистрируемых документов</a></li>
+                <li><a href="#" class="{{ 'active' if current_page == 'change-contents' else '' }}">Изменить содержимое ячеек</a></li>
+                <li><a href="#" class="{{ 'active' if current_page == 'history' else '' }}">История</a></li>
+            </ul>
+        </nav>
+        <main class="put-main">
+            <div class="put-layout">
+                <!-- Схема постомата -->
+                <div class="postomat-section">
+                    <h2 class="section-title">Постомат - Ячейки</h2>
+                    <div class="postomat-container">
+                        <div class="postomat-grid">
+                            {% for cell in cells %}
+                            <div class="cell-item {{ cell.status }}" 
+                                 data-cell-id="{{ cell.id }}"
+                                 data-cell-number="{{ cell.number }}"
+                                 data-cell-status="{{ cell.status }}">
+                                <div class="cell-number">{{ cell.number }}</div>
+                                {% if cell.documents %}
+                                <div class="cell-content">
+                                    <div class="cell-docs">{{ cell.documents|length }} док.</div>
+                                    {% if cell.recipient %}
+                                    <div class="cell-recipient">{{ cell.recipient }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Панель управления -->
+                <div class="control-panel" id="controlPanel" style="display: none;">
+                    <div class="control-content">
+                        <h3 class="control-title">Ячейка №<span id="selectedCellNumber"></span></h3>
+                        
+                        <!-- Выбор документов -->
+                        <div class="control-section">
+                            <label class="control-label">Выберите загружаемые документы:</label>
+                            <div class="documents-list" id="documentsList">
+                                {% for doc in scanned_documents %}
+                                <div class="document-item">
+                                    <input type="checkbox" 
+                                           id="doc_{{ doc.id }}" 
+                                           name="selected_docs" 
+                                           value="{{ doc.id }}"
+                                           class="document-checkbox">
+                                    <label for="doc_{{ doc.id }}" class="document-label">
+                                        <span class="document-name">{{ doc.name }}</span>
+                                        {% if doc.requires_registration %}
+                                        <span class="registration-status required">Требует регистрации</span>
+                                        {% else %}
+                                        <span class="registration-status optional">Регистрация не требуется</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Выбор получателя -->
+                        <div class="control-section">
+                            <label class="control-label">Выберите получателя:</label>
+                            <select class="recipient-select" id="recipientSelect">
+                                <option value="">Выберите получателя...</option>
+                                {% for recipient in recipients %}
+                                <option value="{{ recipient }}">{{ recipient }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Кнопка действия -->
+                        <button class="action-btn primary" id="putDocumentsBtn">
+                            Положить документы
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Модальное окно подтверждения -->
+    <div class="modal-overlay" id="confirmModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Подтверждение действия</h3>
+            </div>
+            <div class="modal-body">
+                <p>Положите выбранные документы в ячейку №<span id="modalCellNumber"></span>?</p>
+                <div id="selectedItems" class="selected-items">
+                    <!-- Здесь будут отображаться выбранные документы и получатель -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" id="cancelBtn">Отмена</button>
+                <button class="modal-btn primary" id="confirmBtn">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Состояние приложения
+        let cellsState = {{ cells|tojson }};
+        let selectedCell = null;
+        let selectedDocuments = [];
+        let selectedRecipient = '';
+
+        // Функционал выдвижного меню
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+        
+        // Закрытие меню при клике на overlay
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        // Выбор ячейки
+        document.addEventListener('click', function(event) {
+            if (event.target.closest('.cell-item')) {
+                const cell = event.target.closest('.cell-item');
+                const cellId = parseInt(cell.dataset.cellId);
+                const cellNumber = parseInt(cell.dataset.cellNumber);
+                const cellStatus = cell.dataset.cellStatus;
+
+                // Снимаем выделение с других ячеек
+                document.querySelectorAll('.cell-item').forEach(c => {
+                    c.classList.remove('selected');
+                });
+
+                // Выделяем выбранную ячейку
+                cell.classList.add('selected');
+                selectedCell = { id: cellId, number: cellNumber, status: cellStatus, element: cell };
+
+                // Показываем панель управления
+                showControlPanel(cellNumber);
+
+                // Загружаем данные ячейки если она занята
+                if (cellStatus === 'occupied') {
+                    loadCellData(cellId);
+                }
+            }
+        });
+
+        // Показать панель управления
+        function showControlPanel(cellNumber) {
+            const controlPanel = document.getElementById('controlPanel');
+            document.getElementById('selectedCellNumber').textContent = cellNumber;
+            controlPanel.style.display = 'block';
+        }
+
+        // Загрузить данные ячейки
+        function loadCellData(cellId) {
+            const cellData = cellsState[cellId - 1]; // Индексы с 0
+            
+            // Сбрасываем все чекбоксы
+            document.querySelectorAll('input[name="selected_docs"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            // Отмечаем документы которые находятся в ячейке
+            if (cellData.documents) {
+                cellData.documents.forEach(docId => {
+                    const checkbox = document.getElementById(`doc_${docId}`);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+
+            // Устанавливаем получателя
+            if (cellData.recipient) {
+                document.getElementById('recipientSelect').value = cellData.recipient;
+            }
+        }
+
+        // Обработка изменения чекбоксов документов
+        document.addEventListener('change', function(event) {
+            if (event.target.name === 'selected_docs') {
+                const checkbox = event.target;
+                const docId = checkbox.value;
+                const docName = checkbox.closest('.document-item').querySelector('.document-name').textContent;
+                
+                if (checkbox.checked) {
+                    selectedDocuments.push({ id: docId, name: docName });
+                } else {
+                    selectedDocuments = selectedDocuments.filter(doc => doc.id !== docId);
+                }
+            }
+
+            if (event.target.id === 'recipientSelect') {
+                selectedRecipient = event.target.value;
+            }
+        });
+
+        // Кнопка "Положить документы"
+        document.getElementById('putDocumentsBtn').addEventListener('click', function() {
+            if (!selectedCell) {
+                alert('Пожалуйста, выберите ячейку');
+                return;
+            }
+
+            const selectedCheckboxes = document.querySelectorAll('input[name="selected_docs"]:checked');
+            const recipientSelect = document.getElementById('recipientSelect');
+
+            if (selectedCheckboxes.length === 0) {
+                alert('Пожалуйста, выберите хотя бы один документ');
+                return;
+            }
+
+            if (!recipientSelect.value) {
+                alert('Пожалуйста, выберите получателя');
+                return;
+            }
+
+            // Показываем модальное окно
+            showConfirmModal();
+        });
+
+        // Показать модальное окно подтверждения
+        function showConfirmModal() {
+            const modal = document.getElementById('confirmModal');
+            const modalCellNumber = document.getElementById('modalCellNumber');
+            const selectedItems = document.getElementById('selectedItems');
+            
+            modalCellNumber.textContent = selectedCell.number;
+            
+            // Собираем информацию о выбранных элементах
+            let itemsHTML = '<div class="items-list">';
+            
+            // Документы
+            const selectedCheckboxes = document.querySelectorAll('input[name="selected_docs"]:checked');
+            if (selectedCheckboxes.length > 0) {
+                itemsHTML += '<div class="item-group"><strong>Документы:</strong><ul>';
+                selectedCheckboxes.forEach(checkbox => {
+                    const docName = checkbox.closest('.document-item').querySelector('.document-name').textContent;
+                    itemsHTML += `<li>${docName}</li>`;
+                });
+                itemsHTML += '</ul></div>';
+            }
+            
+            // Получатель
+            const recipient = document.getElementById('recipientSelect').value;
+            if (recipient) {
+                itemsHTML += `<div class="item-group"><strong>Получатель:</strong> ${recipient}</div>`;
+            }
+            
+            itemsHTML += '</div>';
+            selectedItems.innerHTML = itemsHTML;
+            
+            modal.style.display = 'flex';
+        }
+
+        // Закрытие модального окна
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            document.getElementById('confirmModal').style.display = 'none';
+        });
+
+        // Подтверждение действия
+        document.getElementById('confirmBtn').addEventListener('click', function() {
+            const selectedCheckboxes = document.querySelectorAll('input[name="selected_docs"]:checked');
+            const recipient = document.getElementById('recipientSelect').value;
+            
+            // Обновляем состояние ячейки
+            const cellData = cellsState[selectedCell.id - 1];
+            cellData.status = 'occupied';
+            cellData.documents = Array.from(selectedCheckboxes).map(cb => cb.value);
+            cellData.recipient = recipient;
+            
+            // Обновляем визуальное состояние ячейки
+            const cellElement = selectedCell.element;
+            cellElement.classList.remove('selected');
+            cellElement.classList.add('occupied');
+            
+            // Обновляем содержимое ячейки
+            let cellContent = cellElement.querySelector('.cell-content');
+            if (!cellContent) {
+                cellContent = document.createElement('div');
+                cellContent.className = 'cell-content';
+                cellElement.appendChild(cellContent);
+            }
+            
+            cellContent.innerHTML = `
+                <div class="cell-docs">${selectedCheckboxes.length} док.</div>
+                <div class="cell-recipient">${recipient}</div>
+            `;
+            
+            // Закрываем модальное окно
+            document.getElementById('confirmModal').style.display = 'none';
+            
+            // Показываем уведомление
+            alert('Документы успешно помещены в ячейку!');
+            
+            // Скрываем панель управления
+            document.getElementById('controlPanel').style.display = 'none';
+        });
+
+        // Закрытие модального окна при клике вне его
+        document.getElementById('confirmModal').addEventListener('click', function(event) {
+            if (event.target === this) {
+                this.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

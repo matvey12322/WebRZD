@@ -70,5 +70,43 @@ def scan_documents():
                          scanned_documents=scanned_documents,
                          current_page='scan-documents')
 
+@app.route('/put-documents')
+def put_documents():
+    # Получаем отсканированные документы из предыдущего экрана
+    scanned_documents = [
+        {'id': 'doc_1', 'name': 'Паспорт РФ', 'requires_registration': True, 'scanned_at': '17.12.2025 15:30'},
+        {'id': 'doc_2', 'name': 'Справка о доходах', 'requires_registration': False, 'scanned_at': '17.12.2025 15:25'},
+        {'id': 'doc_3', 'name': 'Водительские права', 'requires_registration': True, 'scanned_at': '17.12.2025 15:20'},
+        {'id': 'doc_4', 'name': 'Фото 3x4', 'requires_registration': False, 'scanned_at': '17.12.2025 15:15'},
+    ]
+    
+    # Список получателей
+    recipients = [
+        'Юридический отдел',
+        'Бухгалтерия', 
+        'Отдел кадров',
+        'Технический отдел',
+        'Отдел маркетинга',
+        'Служба безопасности'
+    ]
+    
+    # Состояние ячеек постомата (мок-данные)
+    cells = []
+    for i in range(1, 25):  # 24 ячейки (6x4)
+        cell = {
+            'id': i,
+            'number': i,
+            'status': 'free',  # free, selected, occupied
+            'documents': [],
+            'recipient': None
+        }
+        cells.append(cell)
+    
+    return render_template('put_documents.html',
+                         scanned_documents=scanned_documents,
+                         recipients=recipients,
+                         cells=cells,
+                         current_page='put-documents')
+
 if __name__ == '__main__':
     app.run(debug=True)

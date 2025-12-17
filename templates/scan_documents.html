@@ -18,7 +18,7 @@
         <nav id="sidebar">
             <ul>
                 <li><a href="{{ url_for('scan_documents') }}" class="{{ 'active' if current_page == 'scan-documents' else '' }}">Отсканировать документы</a></li>
-                <li><a href="#" class="{{ 'active' if current_page == 'put-documents' else '' }}">Положить документы в ячейку</a></li>
+                <li><a href="{{ url_for('put_documents') }}" class="{{ 'active' if current_page == 'put-documents' else '' }}">Положить документы в ячейку</a></li>
                 <li><a href="#" class="{{ 'active' if current_page == 'edit-documents' else '' }}">Редактировать список регистрируемых документов</a></li>
                 <li><a href="#" class="{{ 'active' if current_page == 'change-contents' else '' }}">Изменить содержимое ячеек</a></li>
                 <li><a href="#" class="{{ 'active' if current_page == 'history' else '' }}">История</a></li>
@@ -186,8 +186,6 @@
         document.addEventListener('click', function(event) {
             if (event.target.closest('.registration-badge')) {
                 const badge = event.target.closest('.registration-badge');
-                const icon = badge.querySelector('.badge-icon');
-                const text = badge.querySelector('.badge-text');
                 const isCurrentlyRequired = badge.classList.contains('required');
                 
                 // Переключение класса и данных
@@ -195,12 +193,12 @@
                     badge.classList.remove('required');
                     badge.classList.add('optional');
                     badge.dataset.requiresRegistration = 'false';
-                    text.textContent = 'Регистрация не требуется';
+                    badge.querySelector('.badge-text').textContent = 'Регистрация не требуется';
                 } else {
                     badge.classList.remove('optional');
                     badge.classList.add('required');
                     badge.dataset.requiresRegistration = 'true';
-                    text.textContent = 'Требует регистрации в ЕАСД-2';
+                    badge.querySelector('.badge-text').textContent = 'Требует регистрации в ЕАСД-2';
                 }
                 
                 // Анимация изменения

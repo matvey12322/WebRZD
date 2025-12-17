@@ -18,9 +18,7 @@
             <ul>
                 <li><a href="{{ url_for('scan_documents') }}" class="{{ 'active' if current_page == 'scan-documents' else '' }}">Отсканировать документы</a></li>
                 <li><a href="{{ url_for('put_documents') }}" class="{{ 'active' if current_page == 'put-documents' else '' }}">Положить документы в ячейку</a></li>
-                <li><a href="#" class="{{ 'active' if current_page == 'edit-documents' else '' }}">Редактировать список регистрируемых документов</a></li>
-                <li><a href="#" class="{{ 'active' if current_page == 'change-contents' else '' }}">Изменить содержимое ячеек</a></li>
-                <li><a href="#" class="{{ 'active' if current_page == 'history' else '' }}">История</a></li>
+                <li><a href="{{ url_for('history') }}" class="{{ 'active' if current_page == 'history' else '' }}">История</a></li>
             </ul>
         </nav>
         <main class="status-main">
@@ -31,6 +29,28 @@
                     <button class="send-notification-btn" id="sendNotificationBtn">
                         Отправить уведомление получателю
                     </button>
+                </div>
+
+                <!-- Статистика (вверху) -->
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ cells_status|selectattr('documents')|list|length }}</div>
+                            <div class="stat-label">Занятых ячеек</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ cells_status|selectattr('documents')|selectattr('status', 'equalto', 'Не отправлено')|list|length }}</div>
+                            <div class="stat-label">Не отправлено</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ cells_status|selectattr('documents')|selectattr('status', 'equalto', 'Отправлено')|list|length }}</div>
+                            <div class="stat-label">Отправлено</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ 24 - cells_status|selectattr('documents')|list|length }}</div>
+                            <div class="stat-label">Свободных ячеек</div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Таблица состояния -->
@@ -75,28 +95,6 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                </div>
-
-                <!-- Статистика -->
-                <div class="stats-section">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-number">{{ cells_status|selectattr('documents')|list|length }}</div>
-                            <div class="stat-label">Занятых ячеек</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">{{ cells_status|selectattr('documents')|selectattr('status', 'equalto', 'Не отправлено')|list|length }}</div>
-                            <div class="stat-label">Не отправлено</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">{{ cells_status|selectattr('documents')|selectattr('status', 'equalto', 'Отправлено')|list|length }}</div>
-                            <div class="stat-label">Отправлено</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-number">{{ 24 - cells_status|selectattr('documents')|list|length }}</div>
-                            <div class="stat-label">Свободных ячеек</div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </main>

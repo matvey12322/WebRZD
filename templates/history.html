@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История действий</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
+</head>
+<body>
+    <header>
+        <span class="menu-icon" id="menuToggle">≡</span>
+        <div class="title">История действий</div>
+        <a href="{{ url_for('index') }}" class="back-btn">← Назад</a>
+    </header>
+    <div class="overlay" id="overlay"></div>
+    <div class="container">
+        <nav id="sidebar">
+            <ul>
+                <li><a href="{{ url_for('scan_documents') }}" class="{{ 'active' if current_page == 'scan-documents' else '' }}">Отсканировать документы</a></li>
+                <li><a href="{{ url_for('put_documents') }}" class="{{ 'active' if current_page == 'put-documents' else '' }}">Положить документы в ячейку</a></li>
+                <li><a href="{{ url_for('history') }}" class="{{ 'active' if current_page == 'history' else '' }}">История</a></li>
+            </ul>
+        </nav>
+        <main class="history-main">
+            <div class="history-layout">
+                <!-- Статистика истории -->
+                <div class="history-stats">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ actions_history|length }}</div>
+                            <div class="stat-label">Всего действий</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ actions_history|selectattr('status', 'equalto', 'success')|list|length }}</div>
+                            <div class="stat-label">Успешных</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ actions_history|selectattr('status', 'equalto', 'info')|list|length }}</div>
+                            <div class="stat-label">Информационных</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ actions_history|selectattr('status', 'equalto', 'warning')|list|length }}</div>
+                            <div class="stat-label">Предупреждений</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ actions_history|map(attribute='user')|unique|list|length }}</div>
+                            <div class="stat-label">Пользователей</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Заголовок и фильтры -->
+                <div class="history-header">
+                    <h2 class="history-title">История действий пользователей</h2>
+                    <div class="history-filters">
+                        <select class="filter-select" id="statusFilter">
+                            <option value="">Все статусы</option>
+                            <option value="success">Успешно</option>
+                            <option value="info">Информация</option>
+                            <option value="warning">Предупреждение</option>
+                            <option value="error">Ошибка</option>
+                        </select>
+                        <select class="filter-select" id="userFilter">
+                            <option value="">Все пользователи</option>
+                            <option value="Иванов И.И.">Иванов И.И.</option>
+                            <option value="Петров П.П.">Петров П.П.</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Список действий -->
+                <div class="history-container">
+                    <div class="timeline">
+                        {% for action in actions_history %}
+                        <div class="timeline-item" data-status="{{ action.status }}" data-user="{{ action.user }}">
+                            <div class="timeline-marker {{ action.status }}">
+                                <div class="marker-icon">
+                                    {% if action.status == 'success' %}
+                                        ✓
+                                    {% elif action.status == 'info' %}
+                                        i
+                                    {% elif action.status == 'warning' %}
+                                        !
+                                    {% elif action.status == 'error' %}
+                                        ×
+                                    {% else %}
+                                        •
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="action-header">
+                                    <h3 class="action-title">{{ action.action }}</h3>
+                                    <span class="action-time">{{ action.timestamp }}</span>
+                                </div>
+                                <div class="action-description">{{ action.description }}</div>
+                                <div class="action-footer">
+                                    <span class="action-user">Пользователь: {{ action.user }}</span>
+                                    <span class="action-status-badge {{ action.status }}">
+                                        {% if action.status == 'success' %}
+                                            Успешно
+                                        {% elif action.status == 'info' %}
+                                            Информация
+                                        {% elif action.status == 'warning' %}
+                                            Предупреждение
+                                        {% elif action.status == 'error' %}
+                                            Ошибка
+                                        {% else %}
+                                            {{ action.status }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Функционал выдвижного меню
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+        
+        // Закрытие меню при клике на overlay
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+        
+        // Закрытие меню при клике вне его
+        document.addEventListener('click', function(event) {
+            const isClickInsideSidebar = sidebar.contains(event.target);
+            const isClickOnToggle = menuToggle.contains(event.target);
+            
+            if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+        });
+
+        // Фильтрация истории
+        const statusFilter = document.getElementById('statusFilter');
+        const userFilter = document.getElementById('userFilter');
+        const timelineItems = document.querySelectorAll('.timeline-item');
+
+        function filterHistory() {
+            const selectedStatus = statusFilter.value;
+            const selectedUser = userFilter.value;
+
+            timelineItems.forEach(item => {
+                const itemStatus = item.dataset.status;
+                const itemUser = item.dataset.user;
+                
+                const statusMatch = !selectedStatus || itemStatus === selectedStatus;
+                const userMatch = !selectedUser || itemUser === selectedUser;
+                
+                if (statusMatch && userMatch) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        statusFilter.addEventListener('change', filterHistory);
+        userFilter.addEventListener('change', filterHistory);
+
+        // Анимация появления элементов при прокрутке
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Наблюдение за элементами timeline
+        timelineItems.forEach(item => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(item);
+        });
+    </script>
+</body>
+</html>

@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Операционная информация</title>
+    <title>Постомат - Состояние ячеек</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/postomat-status.css') }}">
 </head>
 <body>
     <header>
         <span class="menu-icon" id="menuToggle">≡</span>
-        <div class="title">Постоматы</div>
-        <button class="add-btn">+ Добавить</button>
-        <select class="filter">
-            <option>Фильтр</option>
-        </select>
+        <div class="title">Постомат - Состояние ячеек</div>
     </header>
     <div class="overlay" id="overlay"></div>
     <div class="container">
@@ -26,39 +23,93 @@
                 <li><a href="#" class="{{ 'active' if current_page == 'history' else '' }}">История</a></li>
             </ul>
         </nav>
-        <main>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Название</th>
-                        <th>Состояние</th>
-                        <th>Дата создания</th>
-                        <th>Действия</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for group in groups %}
-                        <tr class="group-header">
-                            <td colspan="5">{{ group.name }}</td>
-                        </tr>
-                        {% for item in group.items() %}
+        <main class="status-main">
+            <div class="status-layout">
+                <!-- Заголовок с кнопкой -->
+                <div class="status-header">
+                    <h2 class="status-title">Состояние ячеек постомата</h2>
+                    <button class="send-notification-btn" id="sendNotificationBtn">
+                        Отправить уведомление получателю
+                    </button>
+                </div>
+
+                <!-- Таблица состояния -->
+                <div class="status-table-container">
+                    <table class="status-table">
+                        <thead>
                             <tr>
-                                <td>{{ item.id }}</td>
-                                <td>{{ item.name }}</td>
-                                <td><span class="state">{{ item.state }}</span></td>
-                                <td>{{ item.date }}</td>
-                                <td class="actions">
-                                    <img src="https://via.placeholder.com/20?text=E" alt="Edit">
-                                    <img src="https://via.placeholder.com/20?text=X" alt="Delete">
+                                <th>Ячейка</th>
+                                <th>Документы</th>
+                                <th>Отдел</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cell in cells_status %}
+                            <tr class="{{ 'empty-cell' if not cell.documents }}">
+                                <td class="cell-number">{{ cell.cell_number }}</td>
+                                <td class="cell-documents">
+                                    {% if cell.documents %}
+                                        {{ cell.documents }}
+                                    {% else %}
+                                        <span class="empty-text">Пустая</span>
+                                    {% endif %}
+                                </td>
+                                <td class="cell-department">
+                                    {% if cell.department %}
+                                        {{ cell.department }}
+                                    {% else %}
+                                        <span class="empty-text">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="cell-status">
+                                    {% if cell.status %}
+                                        <span class="status-badge {{ 'sent' if cell.status == 'Отправлено' else 'not-sent' }}">
+                                            {{ cell.status }}
+                                        </span>
+                                    {% else %}
+                                        <span class="empty-text">-</span>
+                                    {% endif %}
                                 </td>
                             </tr>
-                        {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Статистика -->
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">{{ cells_status|selectattr('documents')|list|length }}</div>
+                            <div class="stat-label">Занятых ячеек</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ cells_status|selectattr('documents')|selectattr('status', 'equalto', 'Не отправлено')|list|length }}</div>
+                            <div class="stat-label">Не отправлено</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ cells_status|selectattr('documents')|selectattr('status', 'equalto', 'Отправлено')|list|length }}</div>
+                            <div class="stat-label">Отправлено</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">{{ 24 - cells_status|selectattr('documents')|list|length }}</div>
+                            <div class="stat-label">Свободных ячеек</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
+
+    <!-- Уведомление -->
+    <div class="notification-overlay" id="notificationOverlay" style="display: none;">
+        <div class="notification-content">
+            <div class="notification-icon">✓</div>
+            <div class="notification-text">Уведомления отправлены получателям</div>
+        </div>
+    </div>
+
     <script>
         // Функционал выдвижного меню
         const menuToggle = document.getElementById('menuToggle');
@@ -85,6 +136,36 @@
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
             }
+        });
+
+        // Функционал отправки уведомлений
+        const sendNotificationBtn = document.getElementById('sendNotificationBtn');
+        const notificationOverlay = document.getElementById('notificationOverlay');
+
+        sendNotificationBtn.addEventListener('click', function() {
+            // Показываем уведомление
+            notificationOverlay.style.display = 'flex';
+            
+            // Анимация появления
+            setTimeout(() => {
+                notificationOverlay.style.opacity = '1';
+            }, 10);
+            
+            // Скрываем уведомление через 3 секунды
+            setTimeout(() => {
+                notificationOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    notificationOverlay.style.display = 'none';
+                }, 300);
+            }, 3000);
+        });
+
+        // Закрытие уведомления при клике на него
+        notificationOverlay.addEventListener('click', function() {
+            notificationOverlay.style.opacity = '0';
+            setTimeout(() => {
+                notificationOverlay.style.display = 'none';
+            }, 300);
         });
     </script>
 </body>

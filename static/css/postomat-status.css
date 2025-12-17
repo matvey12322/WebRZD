@@ -1,0 +1,454 @@
+/* Стили для главного экрана состояния ячеек постомата */
+
+/* Основной layout */
+.status-main {
+    flex: 1;
+    padding: 32px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: calc(100vh - 64px);
+    position: relative;
+}
+
+.status-main::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(227, 30, 36, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(227, 30, 36, 0.05) 0%, transparent 50%),
+        linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.1) 50%, transparent 60%);
+    pointer-events: none;
+}
+
+.status-layout {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Заголовок с кнопкой */
+.status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--rzd-white);
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--rzd-shadow);
+}
+
+.status-title {
+    color: var(--rzd-red);
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Кнопка отправки уведомления */
+.send-notification-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--rzd-red), #C11A1F);
+    border: 2px solid var(--rzd-red);
+    color: var(--rzd-white);
+    padding: 12px 24px;
+    cursor: pointer;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(227, 30, 36, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.send-notification-btn:hover {
+    background: linear-gradient(135deg, #C11A1F, var(--rzd-red));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(227, 30, 36, 0.4);
+    color: var(--rzd-white);
+}
+
+.send-notification-btn:active {
+    transform: translateY(0);
+}
+
+.send-notification-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.send-notification-btn:hover::before {
+    left: 100%;
+}
+
+/* Контейнер таблицы */
+.status-table-container {
+    background: var(--rzd-white);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px var(--rzd-shadow);
+    overflow: hidden;
+}
+
+/* Таблица */
+.status-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.status-table thead th {
+    background: var(--rzd-red);
+    color: var(--rzd-white);
+    padding: 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: none;
+}
+
+.status-table thead th:first-child {
+    border-top-left-radius: 8px;
+}
+
+.status-table thead th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.status-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.status-table tbody tr:hover:not(.empty-cell) {
+    background: var(--rzd-red-light);
+    transform: scale(1.01);
+}
+
+.status-table tbody tr.empty-cell:hover {
+    background: transparent;
+    transform: none;
+}
+
+.status-table tbody td {
+    padding: 16px;
+    border-bottom: 1px solid var(--rzd-border);
+    font-size: 15px;
+}
+
+.status-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.status-table tbody tr.empty-cell td {
+    color: var(--rzd-text-gray);
+    font-style: italic;
+}
+
+/* Ячейка с номером */
+.cell-number {
+    font-weight: 700;
+    color: var(--rzd-red);
+    font-size: 16px;
+    text-align: center;
+    width: 80px;
+}
+
+/* Ячейка с документами */
+.cell-documents {
+    font-weight: 500;
+    color: var(--rzd-text-dark);
+    max-width: 300px;
+}
+
+/* Ячейка с отделом */
+.cell-department {
+    font-weight: 500;
+    color: var(--rzd-text-dark);
+    max-width: 200px;
+}
+
+/* Ячейка со статусом */
+.cell-status {
+    width: 180px;
+}
+
+/* Бейджи статуса */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    display: inline-block;
+    min-width: 130px;
+    text-align: center;
+}
+
+.status-badge.sent {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--rzd-success);
+    border: 1px solid var(--rzd-success);
+}
+
+.status-badge.not-sent {
+    background: rgba(227, 30, 36, 0.1);
+    color: var(--rzd-red);
+    border: 1px solid var(--rzd-red);
+}
+
+/* Пустые ячейки */
+.empty-text {
+    color: var(--rzd-text-gray);
+    font-style: italic;
+}
+
+/* Секция статистики */
+.stats-section {
+    background: var(--rzd-white);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px var(--rzd-shadow);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--rzd-white), #f8f9fa);
+    border: 1px solid var(--rzd-border);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    border-color: var(--rzd-red);
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--rzd-red);
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--rzd-text-gray);
+    font-weight: 500;
+}
+
+/* Уведомление */
+.notification-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.notification-content {
+    background: var(--rzd-white);
+    border-radius: 16px;
+    padding: 32px 48px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    max-width: 400px;
+    margin: 20px;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.notification-overlay.show .notification-content {
+    transform: scale(1);
+}
+
+.notification-icon {
+    font-size: 48px;
+    color: var(--rzd-success);
+    margin-bottom: 16px;
+    font-weight: bold;
+}
+
+.notification-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--rzd-text-dark);
+    line-height: 1.4;
+}
+
+/* Адаптивный дизайн */
+@media (max-width: 1200px) {
+    .status-header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+    
+    .send-notification-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .cell-status {
+        width: 160px;
+    }
+}
+
+@media (max-width: 768px) {
+    .status-main {
+        padding: 16px;
+    }
+    
+    .status-layout {
+        gap: 20px;
+    }
+    
+    .status-header {
+        padding: 16px;
+    }
+    
+    .status-title {
+        font-size: 20px;
+    }
+    
+    .status-table-container {
+        padding: 16px;
+    }
+    
+    .status-table thead th,
+    .status-table tbody td {
+        padding: 12px 8px;
+        font-size: 13px;
+    }
+    
+    .cell-documents {
+        max-width: 200px;
+    }
+    
+    .cell-department {
+        max-width: 150px;
+    }
+    
+    .cell-status {
+        width: 140px;
+    }
+    
+    .stats-section {
+        padding: 16px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    
+    .stat-card {
+        padding: 16px;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template: 1fr;
+    }
+    
+    .status-table-container {
+        overflow-x: auto;
+    }
+    
+    .status-table {
+        min-width: 600px;
+    }
+    
+    .notification-content {
+        padding: 24px 32px;
+        margin: 10px;
+    }
+    
+    .notification-text {
+        font-size: 16px;
+    }
+    
+    .notification-icon {
+        font-size: 36px;
+    }
+    
+    .status-badge {
+        font-size: 11px;
+        padding: 4px 8px;
+        min-width: 110px;
+    }
+}
+
+/* Анимации */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.status-table tbody tr {
+    animation: slideInUp 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.stat-card {
+    animation: fadeIn 0.6s ease-out;
+}

@@ -5,49 +5,35 @@ app = Flask(__name__)
 @app.route('/')
 @app.route('/postomaty')
 def index():
-    groups = [
-        {
-            'name': 'Soft-logic, 656006, Малахова, 146Б',
-            'items': [
-                {'id': 100, 'name': 'Dev 1(VK)', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-                {'id': 104, 'name': 'Dev 2(Unit)', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-                {'id': 103, 'name': 'Dev 2(Engy)', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-                {'id': 101, 'name': 'Dev 2(Unit)', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-                {'id': 102, 'name': 'Dev 2(Engy)', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-            ]
-        },
-        {
-            'name': 'Холодильник',
-            'items': [{'id': 200, 'name': 'Холодильник', 'state': 'Активен', 'date': '20.07.2020 00:52'}]
-        },
-        {
-            'name': 'Агент 3, 656031, Строителей проспект, 117',
-            'items': [
-                {'id': 207, 'name': 'Агент 3/p1', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-                {'id': 206, 'name': 'Агент 3/p2', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-            ]
-        },
-        {
-            'name': 'Агент 2, 656057, Павловский тракт, 251в',
-            'items': [
-                {'id': 202, 'name': 'Агент 2/p1', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-                {'id': 201, 'name': 'Агент 2/p2', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-            ]
-        },
-        {
-            'name': 'Агент 1, 656006, Балтийская, 65',
-            'items': [{'id': 203, 'name': 'Агент1/p3', 'state': 'Активен', 'date': '20.07.2020 00:52'}]
-        },
-        {
-            'name': 'Агент 1, 656922, Павловский тракт, 188',
-            'items': [
-                {'id': 205, 'name': 'Агент1/p1', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-                {'id': 204, 'name': 'Агент1/p2', 'state': 'Активен', 'date': '20.07.2020 00:52'},
-            ]
-        },
+    # Данные о ячейках постомата
+    cells_status = [
+        {'cell_number': 1, 'documents': 'Паспорт РФ', 'department': 'Юридический отдел', 'status': 'Не отправлено'},
+        {'cell_number': 2, 'documents': 'Справка о доходах', 'department': 'Бухгалтерия', 'status': 'Отправлено'},
+        {'cell_number': 3, 'documents': 'Водительские права', 'department': 'Отдел кадров', 'status': 'Не отправлено'},
+        {'cell_number': 4, 'documents': 'Фото 3x4', 'department': 'Отдел кадров', 'status': 'Отправлено'},
+        {'cell_number': 5, 'documents': 'Трудовая книжка', 'department': 'Отдел кадров', 'status': 'Не отправлено'},
+        {'cell_number': 6, 'documents': 'Диплом', 'department': 'Отдел кадров', 'status': 'Отправлено'},
+        {'cell_number': 7, 'documents': 'Справка с места работы', 'department': 'Бухгалтерия', 'status': 'Не отправлено'},
+        {'cell_number': 8, 'documents': 'Медицинская справка', 'department': 'Технический отдел', 'status': 'Отправлено'},
+        {'cell_number': 9, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 10, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 11, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 12, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 13, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 14, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 15, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 16, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 17, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 18, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 19, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 20, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 21, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 22, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 23, 'documents': '', 'department': '', 'status': ''},
+        {'cell_number': 24, 'documents': '', 'department': '', 'status': ''},
     ]
 
-    return render_template('index.html', groups=groups, current_page='postomaty')
+    return render_template('index.html', cells_status=cells_status, current_page='postomaty')
 
 @app.route('/scan-documents')
 def scan_documents():

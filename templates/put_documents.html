@@ -283,42 +283,41 @@
         });
 
         // Подтверждение действия
-        document.getElementById('confirmBtn').addEventListener('click', function() {
+        document.getElementById('confirmBtn').addEventListener('click', async function() {
             const selectedCheckboxes = document.querySelectorAll('input[name="selected_docs"]:checked');
             const recipient = document.getElementById('recipientSelect').value;
-            
-            // Обновляем состояние ячейки
-            const cellData = cellsState[selectedCell.id - 1];
-            cellData.status = 'occupied';
-            cellData.documents = Array.from(selectedCheckboxes).map(cb => cb.value);
-            cellData.recipient = recipient;
-            
-            // Обновляем визуальное состояние ячейки
-            const cellElement = selectedCell.element;
-            cellElement.classList.remove('selected');
-            cellElement.classList.add('occupied');
-            
-            // Обновляем содержимое ячейки
-            let cellContent = cellElement.querySelector('.cell-content');
-            if (!cellContent) {
-                cellContent = document.createElement('div');
-                cellContent.className = 'cell-content';
-                cellElement.appendChild(cellContent);
+
+            // Post to server for each selected document
+            for (const checkbox of selectedCheckboxes) {
+                const docName = checkbox.closest('.document-item').querySelector('.document-name').textContent;
+                const formData = new FormData();
+                formData.append('doc_name', docName);
+                formData.append('cell_id', selectedCell.id);
+                formData.append('department', recipient);
+
+                try {
+                    const response = await fetch('/assign-document', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const result = await response.json();
+                    console.log(result);
+                } catch (error) {
+                    console.error('Error assigning document:', error);
+                }
             }
-            
-            cellContent.innerHTML = `
-                <div class="cell-docs">${selectedCheckboxes.length} док.</div>
-                <div class="cell-recipient">${recipient}</div>
-            `;
-            
+
             // Закрываем модальное окно
             document.getElementById('confirmModal').style.display = 'none';
-            
+
             // Показываем уведомление
             alert('Документы успешно помещены в ячейку!');
-            
+
             // Скрываем панель управления
             document.getElementById('controlPanel').style.display = 'none';
+
+            // Reload page to update state
+            window.location.reload();
         });
 
         // Закрытие модального окна при клике вне его

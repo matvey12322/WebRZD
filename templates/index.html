@@ -140,22 +140,35 @@
         const sendNotificationBtn = document.getElementById('sendNotificationBtn');
         const notificationOverlay = document.getElementById('notificationOverlay');
 
-        sendNotificationBtn.addEventListener('click', function() {
-            // Показываем уведомление
-            notificationOverlay.style.display = 'flex';
-            
-            // Анимация появления
-            setTimeout(() => {
-                notificationOverlay.style.opacity = '1';
-            }, 10);
-            
-            // Скрываем уведомление через 3 секунды
-            setTimeout(() => {
-                notificationOverlay.style.opacity = '0';
+        sendNotificationBtn.addEventListener('click', async function() {
+            try {
+                const response = await fetch('/send-notifications', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                console.log(result);
+
+                // Показываем уведомление
+                notificationOverlay.style.display = 'flex';
+
+                // Анимация появления
                 setTimeout(() => {
-                    notificationOverlay.style.display = 'none';
-                }, 300);
-            }, 3000);
+                    notificationOverlay.style.opacity = '1';
+                }, 10);
+
+                // Скрываем уведомление через 3 секунды
+                setTimeout(() => {
+                    notificationOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        notificationOverlay.style.display = 'none';
+                        // Reload to update status
+                        window.location.reload();
+                    }, 300);
+                }, 3000);
+            } catch (error) {
+                console.error('Error sending notifications:', error);
+                alert('Error sending notifications');
+            }
         });
 
         // Закрытие уведомления при клике на него

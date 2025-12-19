@@ -169,15 +169,37 @@
                     startScanBtn.textContent = 'Запустить сканирование';
                     saveBtn.disabled = false;
                     scanProgress.style.display = 'none';
-                    
-                    // Здесь можно добавить логику обновления списка документов
+
+                    // Mock scan: add document
+                    const formData = new FormData();
+                    formData.append('doc_name', `document_${Date.now()}.pdf`);
+                    fetch('/scan', { method: 'POST', body: formData })
+                        .then(response => response.json())
+                        .then(result => {
+                            console.log(result);
+                            window.location.reload();  // Reload to show new document
+                        })
+                        .catch(error => console.error('Error:', error));
+
                     alert('Сканирование завершено!');
                 }
             }, 500);
         });
         
-        saveBtn.addEventListener('click', function() {
-            alert('Документы сохранены!');
+        saveBtn.addEventListener('click', async function() {
+            try {
+                const response = await fetch('/save-scan', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                console.log(result);
+                alert('Документы сохранены!');
+                // Reload to show saved docs
+                window.location.reload();
+            } catch (error) {
+                console.error('Error saving documents:', error);
+                alert('Error saving documents');
+            }
         });
         
         // Функционал переключения статуса регистрации

@@ -1,0 +1,3 @@
+[submodule "postomat-client"]
+	path = postomat-client
+	url = https://github.com/generic-name-2166/postomat-client.git

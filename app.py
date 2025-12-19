@@ -75,14 +75,24 @@ def put_documents():
     # Get scanned documents from folder
     documents_folder.mkdir(exist_ok=True)
     scanned_files = scan_folder(documents_folder)
+
+    # Collect already assigned documents
+    assigned_docs = set()
+    for cell_data in cells_data.values():
+        assigned_docs.update(cell_data.get('documents', []))
+
+    # Filter out documents that are already assigned to cells
     scanned_documents = []
-    for i, filename in enumerate(scanned_files):
-        scanned_documents.append({
-            'id': f'doc_{i+1}',
-            'name': filename,
-            'requires_registration': True,  # Mock
-            'scanned_at': datetime.now().strftime('%d.%m.%Y %H:%M')
-        })
+    doc_counter = 1
+    for filename in scanned_files:
+        if filename not in assigned_docs:
+            scanned_documents.append({
+                'id': f'doc_{doc_counter}',
+                'name': filename,
+                'requires_registration': True,  # Mock
+                'scanned_at': datetime.now().strftime('%d.%m.%Y %H:%M')
+            })
+            doc_counter += 1
 
     # Recipients (departments)
     recipients = departments
